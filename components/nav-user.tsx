@@ -29,6 +29,11 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useClerk } from "@clerk/nextjs"
+import { routeros } from "react-syntax-highlighter/dist/esm/styles/hljs"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import Link from "next/link"
 
 export function NavUser({
   user,
@@ -36,11 +41,17 @@ export function NavUser({
   user: {
     name: string
     email: string
-    avatar: string
+    avatar?: string
   }
 }) {
   const { isMobile } = useSidebar()
-
+  const router = useRouter();
+  const { signOut } = useClerk();
+  const handleLogout = async() => {
+    await signOut();
+    toast.success("You are logged out now")
+    router.push("/");
+  }
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -50,9 +61,13 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+              <Avatar className="h-8 w-8 rounded-full">
+                <AvatarImage src={user?.avatar} alt={user.name} />
+                <AvatarFallback className="rounded-lg font-medium">
+                  {
+                    user && user.name && user.name.split(" ").map(word => word[0])
+                  }
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.name}</span>
@@ -88,23 +103,23 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+            <Link className="w-full cursor-pointer" href="/account-settings">
+              <DropdownMenuItem >
                 <BadgeCheck />
-                Account
+                Settings
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
+              </Link>
+              <Link className="w-full cursor-pointer" href="/billing">
+                <DropdownMenuItem>
+                  <CreditCard />
+                  Billing
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="size-4 text-destructive"/>
+              <span className="text-destructive w-full cursor-pointer inline-block">Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

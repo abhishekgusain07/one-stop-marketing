@@ -13,7 +13,7 @@ if (config.auth.enabled) {
 }
 
 const isProtectedRoute = config.auth.enabled
-  ? createRouteMatcher(["/dashboard(.*)"])
+  ? createRouteMatcher(["/dashboard(.*)","/account-settings(.*)","/billing(.*)","/gallery(.*)","/image-generation(.*)","/model-training(.*)","/models(.*)"])
   : () => false;
 
 export default function middleware(req: any) {
