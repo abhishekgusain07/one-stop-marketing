@@ -35,6 +35,7 @@ const config: Config = {
       },
       // Merging colors, borderRadius, keyframes, and animation from the second file
       colors: {
+        bgmain:"#F3F4EE",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

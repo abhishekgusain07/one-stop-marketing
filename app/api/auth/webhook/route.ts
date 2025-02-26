@@ -10,20 +10,22 @@ export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
-    throw new Error(
-      "Please add WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local"
-    );
+    console.error("Missing CLERK_WEBHOOK_SECRET");
+    return new Response("Missing CLERK_WEBHOOK_SECRET", {
+      status: 500,
+    });
   }
 
   // Get the headers
-  const headerPayload = await headers();
+  const headerPayload = headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
 
   // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response("Error occured -- no svix headers", {
+    console.error("Missing svix headers:", { svix_id, svix_timestamp, svix_signature });
+    return new Response("Error occurred -- missing svix headers", {
       status: 400,
     });
   }
@@ -45,8 +47,18 @@ export async function POST(req: Request) {
       "svix-signature": svix_signature,
     }) as WebhookEvent;
   } catch (err) {
-    console.error("Error verifying webhook:", err);
-    return new Response("Error occured", {
+    console.error("Error verifying webhook:", {
+      error: err,
+      secret: WEBHOOK_SECRET.substring(0, 4) + "...", // Log first 4 chars of secret for debugging
+      headers: {
+        "svix-id": svix_id,
+        "svix-timestamp": svix_timestamp,
+        "svix-signature": svix_signature,
+      },
+      bodyLength: body.length
+    });
+    
+    return new Response("Error verifying webhook signature", {
       status: 400,
     });
   }
