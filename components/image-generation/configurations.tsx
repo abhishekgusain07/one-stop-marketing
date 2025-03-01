@@ -86,12 +86,12 @@ const Configuration = () => {
   };
 
   return (
-    <Card className="w-full max-w-2xl ml-9">
-      <CardContent className="p-6">
+    <Card className="w-full max-w-[95%] md:max-w-2xl mx-auto transition-all duration-300 ease-in-out">
+      <CardContent className="p-4 md:p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {/* Model Selection - Full width */}
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               <Label>
                 Model
                 <InfoTooltip content="Select the AI model to generate your image. Different models have different strengths and capabilities." />
@@ -121,7 +121,7 @@ const Configuration = () => {
             </div>
 
             {/* Number of Outputs - Full width */}
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               <Label>
                 Number of Outputs
                 <InfoTooltip content="Generate multiple variations at once. More outputs take longer to generate but give you more options to choose from." />
@@ -134,71 +134,74 @@ const Configuration = () => {
               />
             </div>
 
-            {/* Guidance Scale - Full width */}
-            <div className="space-y-2">
-              <Label>
-                Guidance Scale: {guidance.toFixed(1)}
-                <InfoTooltip content="Controls how closely the AI follows your prompt. Higher values (7-20) produce images that match your prompt more closely but may be less creative. Lower values (1-7) allow more creative freedom." />
-              </Label>
-              <Controller
-                name="guidance"
-                control={control}
-                render={({ field }) => (
-                  <Slider
-                    value={[field.value]}
-                    min={0}
-                    max={20}
-                    step={0.1}
-                    onValueChange={(vals) => field.onChange(vals[0])}
-                  />
-                )}
-              />
-            </div>
+            {/* Sliders - Full width */}
+            <div className="space-y-4 w-full">
+              {/* Guidance Scale - Full width */}
+              <div className="space-y-2">
+                <Label>
+                  Guidance Scale: {guidance.toFixed(1)}
+                  <InfoTooltip content="Controls how closely the AI follows your prompt. Higher values (7-20) produce images that match your prompt more closely but may be less creative. Lower values (1-7) allow more creative freedom." />
+                </Label>
+                <Controller
+                  name="guidance"
+                  control={control}
+                  render={({ field }) => (
+                    <Slider
+                      value={[field.value]}
+                      min={0}
+                      max={20}
+                      step={0.1}
+                      onValueChange={(vals) => field.onChange(vals[0])}
+                    />
+                  )}
+                />
+              </div>
 
-            {/* Inference Steps - Now as slider */}
-            <div className="space-y-2">
-              <Label>
-                Inference Steps: {inferenceSteps}
-                <InfoTooltip content="Number of denoising steps. Recommended range is 28-50. Lower numbers produce lower quality outputs but generate faster. Higher numbers may improve quality but take longer." />
-              </Label>
-              <Controller
-                name="num_inference_steps"
-                control={control}
-                render={({ field }) => (
-                  <Slider
-                    value={[field.value]}
-                    min={1}
-                    max={100}
-                    step={1}
-                    onValueChange={(vals) => field.onChange(vals[0])}
-                  />
-                )}
-              />
-            </div>
+              {/* Inference Steps - Now as slider */}
+              <div className="space-y-2">
+                <Label>
+                  Inference Steps: {inferenceSteps}
+                  <InfoTooltip content="Number of denoising steps. Recommended range is 28-50. Lower numbers produce lower quality outputs but generate faster. Higher numbers may improve quality but take longer." />
+                </Label>
+                <Controller
+                  name="num_inference_steps"
+                  control={control}
+                  render={({ field }) => (
+                    <Slider
+                      value={[field.value]}
+                      min={1}
+                      max={100}
+                      step={1}
+                      onValueChange={(vals) => field.onChange(vals[0])}
+                    />
+                  )}
+                />
+              </div>
 
-            {/* Prompt Strength - Full width */}
-            <div className="space-y-2">
-              <Label>
-                Prompt Strength: {promptStrength.toFixed(1)}
-                <InfoTooltip content="When using image-to-image mode, this controls how much the AI should modify the input image. 1.0 means complete modification, 0.0 means no modification." />
-              </Label>
-              <Controller
-                name="prompt_strength"
-                control={control}
-                render={({ field }) => (
-                  <Slider
-                    value={[field.value]}
-                    min={0}
-                    max={1}
-                    step={0.1}
-                    onValueChange={(vals) => field.onChange(vals[0])}
-                  />
-                )}
-              />
+              {/* Prompt Strength - Full width */}
+              <div className="space-y-2">
+                <Label>
+                  Prompt Strength: {promptStrength.toFixed(1)}
+                  <InfoTooltip content="When using image-to-image mode, this controls how much the AI should modify the input image. 1.0 means complete modification, 0.0 means no modification." />
+                </Label>
+                <Controller
+                  name="prompt_strength"
+                  control={control}
+                  render={({ field }) => (
+                    <Slider
+                      value={[field.value]}
+                      min={0}
+                      max={1}
+                      step={0.1}
+                      onValueChange={(vals) => field.onChange(vals[0])}
+                    />
+                  )}
+                />
+              </div>
             </div>
 
             {/* Two columns for Aspect Ratio and Output Format */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Aspect Ratio */}
               <div className="space-y-2">
                 <Label>
@@ -251,18 +254,18 @@ const Configuration = () => {
             </div>
 
             {/* Fast Mode Toggle */}
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               <Controller
                 name="go_fast"
                 control={control}
                 render={({ field }) => (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Checkbox
                       id="go_fast"
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
-                    <Label htmlFor="go_fast" className="flex items-center">
+                    <Label htmlFor="go_fast" className="flex items-center flex-wrap gap-1">
                       Fast Mode
                       <InfoTooltip content="Run faster predictions with model optimized for speed (using fp8 quantization). Disable to run in original bf16 for potentially higher quality." />
                     </Label>
@@ -271,9 +274,9 @@ const Configuration = () => {
               />
             </div>
 
-            {/* Prompt Input - Moved to last */}
-            <div className="space-y-2">
-              <Label htmlFor="prompt">
+            {/* Prompt Input */}
+            <div className="space-y-2 w-full">
+              <Label htmlFor="prompt" className="flex items-center flex-wrap gap-1">
                 Prompt
                 <InfoTooltip content="Describe the image you want to generate in detail. The more specific your description, the better the results." />
               </Label>
@@ -286,7 +289,7 @@ const Configuration = () => {
                       {...field}
                       id="prompt"
                       placeholder="Describe the image you want to generate..."
-                      className="min-h-[100px]"
+                      className="min-h-[100px] w-full"
                     />
                     {errors.prompt && (
                       <span className="text-red-500 text-sm">{errors.prompt.message}</span>
@@ -297,7 +300,7 @@ const Configuration = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full mt-6">
             Generate Image
           </Button>
         </form>

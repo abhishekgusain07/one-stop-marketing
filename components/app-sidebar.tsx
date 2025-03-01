@@ -6,19 +6,25 @@ import {
   BookOpen,
   Bot,
   ChevronsUpDown,
+  Clapperboard,
   Command,
   CreditCard,
   Frame,
   FrameIcon,
+  GalleryHorizontal,
   GalleryVerticalEnd,
   Image,
   Images,
   Layers,
+  Link,
   Map,
+  Package2,
   PieChart,
+  PlusIcon,
   Settings2,
   Settings2Icon,
   SquareTerminal,
+  Video,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -62,40 +68,76 @@ const data = {
   ],
   navMain:[
     {
-      title: "dashboard",
-      url: "/dashboard",
-      icon: SquareTerminal
+      title: "Images",
+      url: "/images",
+      icon: Images,
+      isActive: true,
+      items: [
+        {
+          title: "dashboard",
+          url: "/images/dashboard",
+          icon: SquareTerminal
+        },
+        {
+          title: "Generate Image",
+          url: "/images/image-generation",
+          icon: Image
+        },
+        {
+          title: "My Models",
+          url: "/images/models",
+          icon: FrameIcon
+        },
+        {
+          title: "Train Model",
+          url: "/images/model-training",
+          icon: Layers
+        },
+        {
+          title: "My Images",
+          url: "/images/gallery",
+          icon: Images
+        },
+        {
+          title: "Billing",
+          url: "/images/billing",
+          icon: CreditCard
+        },
+        {
+          title: "Settings",
+          url: "/images/account-settings",
+          icon: Settings2Icon
+        },
+      ],
     },
     {
-      title: "Generate Image",
-      url: "/image-generation",
-      icon: Image
+      title: "UGC",
+      url: "/ugc",
+      icon: Clapperboard,
+      isActive: true,
+      items: [
+        {
+          title: "Create",
+          url: "/ugc/create",
+          icon: PlusIcon
+        },
+        {
+          title: "Videos",
+          url: "/ugc/videos",
+          icon: Video
+        },
+        {
+          title: "connect",
+          url: "/ugc/connect",
+          icon: Link
+        },
+        {
+          title: "product",
+          url: "/ugc/product",
+          icon: Package2
+        }
+      ],
     },
-    {
-      title: "My Models",
-      url: "/models",
-      icon: FrameIcon
-    },
-    {
-      title: "Train Model",
-      url: "/model-training",
-      icon: Layers
-    },
-    {
-      title: "My Images",
-      url: "/gallery",
-      icon: Images
-    },
-    {
-      title: "Billing",
-      url: "/billing",
-      icon: CreditCard
-    },
-    {
-      title: "Settings",
-      url: "account-settings",
-      icon: Settings2Icon
-    }
   ],
   projects: [
     {
@@ -143,7 +185,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
-        <NavMainV2 items={data.navMain} />
+        <NavMain items={data.navMain} />
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
