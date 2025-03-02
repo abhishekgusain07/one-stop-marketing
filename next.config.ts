@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "d3cqxidtqh4nzy.cloudfront.net",
+        port: "",
+        pathname: "/**"
+      },
+      {
+        protocol: "https",
         hostname: "seo-heist.s3.amazonaws.com",
         port: "",
         pathname: "/**",

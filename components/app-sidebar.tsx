@@ -2,9 +2,12 @@
 
 import * as React from "react"
 import {
+  Activity,
   AudioWaveform,
   BookOpen,
   Bot,
+  Briefcase,
+  Calendar,
   ChevronsUpDown,
   Clapperboard,
   Command,
@@ -51,8 +54,8 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
+      name: "One Stop Marketing",
+      logo: Briefcase,
       plan: "Enterprise",
     }
   ],
@@ -125,6 +128,16 @@ const data = {
           title: "product",
           url: "/dashboard/ugc/product",
           icon: Package2
+        },
+        {
+          title: "schedule",
+          url: "/dashboard/ugc/schedule",
+          icon: Calendar
+        },
+        {
+          title: "campaign",
+          url: "/dashboard/ugc/campaign",
+          icon: Activity
         }
       ],
     },
