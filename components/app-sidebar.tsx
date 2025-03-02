@@ -54,17 +54,7 @@ const data = {
       name: "Acme Inc",
       logo: GalleryVerticalEnd,
       plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
+    }
   ],
   navMain:[
     {
@@ -75,65 +65,65 @@ const data = {
       items: [
         {
           title: "dashboard",
-          url: "/images/dashboard",
+          url: "/dashboard/images/images-dashboard",
           icon: SquareTerminal
         },
         {
           title: "Generate Image",
-          url: "/images/image-generation",
+          url: "/dashboard/images/image-generation",
           icon: Image
         },
         {
           title: "My Models",
-          url: "/images/models",
+          url: "/dashboard/images/models",
           icon: FrameIcon
         },
         {
           title: "Train Model",
-          url: "/images/model-training",
+          url: "/dashboard/images/model-training",
           icon: Layers
         },
         {
           title: "My Images",
-          url: "/images/gallery",
+          url: "/dashboard/images/gallery",
           icon: Images
         },
         {
           title: "Billing",
-          url: "/images/billing",
+          url: "/dashboard/images/billing",
           icon: CreditCard
         },
         {
           title: "Settings",
-          url: "/images/account-settings",
+          url: "/dashboard/images/account-settings",
           icon: Settings2Icon
         },
       ],
     },
     {
       title: "UGC",
-      url: "/ugc",
+      url: "dashboard/ugc",
       icon: Clapperboard,
       isActive: true,
       items: [
         {
           title: "Create",
-          url: "/ugc/create",
+          url: "/dashboard/ugc/create",
           icon: PlusIcon
         },
         {
           title: "Videos",
-          url: "/ugc/videos",
+          url: "/dashboard/ugc/videos",
           icon: Video
         },
         {
           title: "connect",
-          url: "/ugc/connect",
+          url: "/dashboard/ugc/connect",
           icon: Link
         },
         {
           title: "product",
-          url: "/ugc/product",
+          url: "/dashboard/ugc/product",
           icon: Package2
         }
       ],
