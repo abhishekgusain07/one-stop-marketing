@@ -29,6 +29,13 @@
       "when": 1739177248350,
       "tag": "0003_foamy_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1741054588589,
+      "tag": "0004_grey_arclight",
+      "breakpoints": true
     }
   ]
 }

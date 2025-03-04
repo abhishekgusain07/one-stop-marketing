@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -51,3 +52,39 @@ export const invoices = pgTable("invoices", {
   email: text("email"),
   userId: text("user_id"),
 });
+
+
+export const products = pgTable("products", {
+  id: text("id").primaryKey(),
+  createdTime: timestamp("created_time").defaultNow(),
+  name: text("name").notNull(), 
+  description: text("description").notNull(), 
+  userId: text("user_id").notNull(), 
+});
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  user: one(users, {
+    fields: [products.userId],
+    references: [users.id],
+  }),
+  hooks: many(hooks),
+}));
+
+export const hooks = pgTable("hooks", {
+  id: text("id").primaryKey(),
+  createdTime: timestamp("created_time").defaultNow(),
+  content: text("content").notNull(), 
+  productId: text("product_id").notNull(),
+  userId: text("user_id").notNull(), 
+});
+
+export const hooksRelations = relations(hooks, ({ one }) => ({
+  product: one(products, {
+    fields: [hooks.productId],
+    references: [products.id],
+  }),
+  user: one(users, {
+    fields: [hooks.userId],
+    references: [users.id],
+  }),
+}));

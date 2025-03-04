@@ -1,3 +1,5 @@
+import { hooks, products, users } from "@/db/schema";
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { z } from "zod";
 
 export type userCreateProps = z.infer<typeof userCreateSchema>;
@@ -45,3 +47,13 @@ const userUpdateSchema = z.object({
     .describe("user profile image URL"),
   user_id: z.string().describe("user ID"),
 });
+
+
+export type User = InferSelectModel<typeof users>
+
+export type Product = InferSelectModel<typeof products>
+export type NewProduct = InferInsertModel<typeof products>
+
+
+export type Hook = InferSelectModel<typeof hooks>
+export type NewHook = InferSelectModel<typeof hooks>
