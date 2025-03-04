@@ -41,11 +41,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { deleteProduct } from '@/utils/data/user/products/deleteProduct';
 
 
 function ProductsPage() {
   const [products, setProducts] = useState<Product[] | null>(null);
-  const [fetchingProducts, setFetchingProducts] = useState<Boolean>(false);
+  const [fetchingProducts, setFetchingProducts] = useState<Boolean>(true);
+  const [isMounted, setIsMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -58,6 +60,11 @@ function ProductsPage() {
       description: "",
     },
   });
+
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
 
   useEffect(() => {
     const fetchProductsOfUser = async() => {
@@ -96,8 +103,7 @@ function ProductsPage() {
 
   const handleDeleteProduct = async (product: Product) => {
     try {
-      // TODO: Implement deleteProduct API call
-      // await deleteProduct(product.id);
+      await deleteProduct({productId: product.id});
       toast.success("Product deleted successfully");
       setProductToDelete(null);
       setRefreshTrigger(prev => prev + 1);
@@ -107,7 +113,7 @@ function ProductsPage() {
     }
   };
 
-  if(fetchingProducts) {
+  if(!isMounted || fetchingProducts) {
     return (
       <div className='h-screen w-full flex items-center justify-center'>
         <Loader2 className='size-4 animate-spin' />
