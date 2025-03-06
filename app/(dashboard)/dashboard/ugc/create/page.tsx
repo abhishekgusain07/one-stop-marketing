@@ -3,19 +3,55 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { commonFiles } from '@/constants/commonFiles';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import axios from 'axios';
+import { StichResponse } from '@/utils/backend/types';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 type AvailableTextPosition = "top" | "middle" | "bottom"
 
 const UGCAdCreator = () => {
+
+
   const [hookText, setHookText] = useState('edit ur text here');
   const [selectedAvatar, setSelectedAvatar] = useState(41); // Default selected avatar
   const [currentPage, setCurrentPage] = useState(1);
+  const [processing, setProcessing] = useState<boolean>(false)
   const [textPosition, setTextPosition] = useState<AvailableTextPosition>("middle")
+
+  const router = useRouter();
+
 
   // Calculate total pages based on avatars per page
   const itemsPerPage = 24; // Increased from 18 to 24 (8x3 grid)
   const totalPages = Math.ceil(commonFiles.length / itemsPerPage);
   
+  const stichVideoWithText = async() => {
+    try {
+      setProcessing(true);
+      
+      const response:StichResponse = await axios.post('/api/video/stich', {
+        textPosition,
+        hookText,
+        selectedAvatar,
+        video_urls: [`/ugc/videos/${selectedAvatar}.mp4`],
+        output_name: `output_${Date.now()}`,
+        transition_type: "fade"
+      });
+
+      if (response.status === 'success') {
+        toast.success("Video created successfully!");
+        router.push("/dashboard/ugc/videos");
+      }
+      
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.detail || "Error while creating the video, try again later.");
+    } finally {
+      setProcessing(false);
+    }
+  };
   // Get current page avatars
   const getCurrentPageAvatars = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -110,7 +146,7 @@ const UGCAdCreator = () => {
                         alt="Avatar preview" 
                         width={48} 
                         height={48} 
-                        src={`https://d3cqxidtqh4nzy.cloudfront.net/${fileId}.png`} 
+                        src={`/ugc/images/${fileId}.png`} 
                         className="object-cover" 
                       />
                     </div>
@@ -141,12 +177,12 @@ const UGCAdCreator = () => {
             </div>
           </div>
           
-          <div className="w-[55%] flex flex-col">
+          <div className="w-[55%] flex flex-col" suppressHydrationWarning>
             <div className="relative rounded-2xl border border-[#DADBD2] overflow-hidden flex items-center justify-center flex-1">
               <div className="absolute inset-0 bg-[#B9B9B6]"></div>
-              <div className="h-full w-auto aspect-[9/16] z-[1]">
+              <div className="h-full w-auto aspect-[9/16] z-[1]" suppressHydrationWarning>
                 <video 
-                  src={`https://d3cqxidtqh4nzy.cloudfront.net/${selectedAvatar}.mp4`} 
+                  src={`/ugc/videos/${selectedAvatar}.mp4`} 
                   className="w-full h-full object-cover transition-opacity duration-300 opacity-100" 
                   autoPlay={true}
                   loop={true}
@@ -197,14 +233,14 @@ const UGCAdCreator = () => {
                   Sound
                 </div>
               </button>
-              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 flex-1 py-6 text-lg bg-[#FF5119] mt-4 rounded-xl !bg-[#333]" disabled>
-                Subscription required to use
+              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground shadow bg-primary hover:bg-primary/70 h-9 px-4 flex-1 py-6 text-lg mt-4 rounded-xl " onClick={stichVideoWithText} disabled={processing}>
+                {!processing ? "Create" : <Loader2 className='size-4 animate-spin' />}
               </button>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center justify-between mb-4 mb-2 mt-8">
+        <div className="flex items-center justify-between mb-4 mt-8">
           <h2 className="text-[24px] font-bold text-[#333] tracking-[-0.5px]">
             My Videos <a className="text-[24px] font-medium text-[#B8B8B8]">(0)</a>
           </h2>
