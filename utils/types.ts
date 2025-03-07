@@ -1,4 +1,4 @@
-import { hooks, products, users } from "@/db/schema";
+import { hooks, products, users, videos } from "@/db/schema";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { z } from "zod";
 
@@ -57,3 +57,6 @@ export type NewProduct = InferInsertModel<typeof products>
 
 export type Hook = InferSelectModel<typeof hooks>
 export type NewHook = InferSelectModel<typeof hooks>
+
+export type Videos = InferSelectModel<typeof videos>
+export type NewVideos = InferSelectModel<typeof videos>

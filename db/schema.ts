@@ -78,6 +78,8 @@ export const hooks = pgTable("hooks", {
   userId: text("user_id").notNull(), 
 });
 
+
+
 export const hooksRelations = relations(hooks, ({ one }) => ({
   product: one(products, {
     fields: [hooks.productId],
@@ -86,5 +88,25 @@ export const hooksRelations = relations(hooks, ({ one }) => ({
   user: one(users, {
     fields: [hooks.userId],
     references: [users.id],
+  }),
+}));
+
+export const videos = pgTable("videos", {
+  id: text("id").primaryKey(),
+  createdTime: timestamp("created_time").defaultNow(),
+  url: text("url").notNull(),
+  userId: text("user_id").notNull(),
+  productId: text("product_id"),
+  hookText: text("hook_text"),
+});
+
+export const videosRelations = relations(videos, ({ one }) => ({
+  user: one(users, {
+    fields: [videos.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [videos.productId],
+    references: [products.id],
   }),
 }));
