@@ -31,7 +31,8 @@ const UGCAdCreator = () => {
     try {
       setProcessing(true);
       
-      const response:StichResponse = await axios.post('/api/video/stich', {
+      //todo: add product Id field.
+      const response = await axios.post('/api/video/stich', {
         textPosition,
         hookText,
         selectedAvatar,
@@ -40,13 +41,25 @@ const UGCAdCreator = () => {
         transition_type: "fade"
       });
 
-      if (response.status === 'success') {
+      // Debug the response
+      console.log("API Response:", response);
+
+      // Check response.data.status instead of response.status
+      if (response.data && response.data.status === 'success') {
         toast.success("Video created successfully!");
-        router.push("/dashboard/ugc/videos");
+        
+        // Add a small delay before redirecting
+        setTimeout(() => {
+          router.push("/dashboard/ugc/videos");
+        }, 500);
+      } else {
+        // Handle unexpected response format
+        console.error("Unexpected response format:", response.data);
+        toast.error("Unexpected response from server");
       }
       
     } catch (error: any) {
-      console.error(error);
+      console.error("Error creating video:", error);
       toast.error(error.response?.data?.detail || "Error while creating the video, try again later.");
     } finally {
       setProcessing(false);
