@@ -1,5 +1,6 @@
 "use server"
 
+
 import { db } from "@/db/drizzle";
 import { products, users, videos } from "@/db/schema";
 import { NewProduct, Product, User, userCreateProps, Videos } from "@/utils/types";
@@ -7,7 +8,12 @@ import { auth } from "@clerk/nextjs/server";
 import { uid } from "uid";
 import { eq } from "drizzle-orm"
 
-export const getUserVideos = async() => {
+interface addNewVideoProps {
+    url: string;
+    productId: string | null;
+    hookText: string | null;
+}
+export const addNewVideo = async({url, productId, hookText}:addNewVideoProps):Promise<Videos|null> => {
     try{
         const { userId } = await auth();
         if(!userId) {
@@ -19,12 +25,19 @@ export const getUserVideos = async() => {
             throw new Error("User not found");
         }
 
-        const allVideos: Videos[] = await db.select().from(videos).where(eq(videos.userId, user[0].id));
-        return allVideos;
+        const newVideo = await db.insert(videos).values({
+            id: uid(32),
+            hookText,
+            url,
+            productId,
+            createdTime: new Date(),
+            userId: user[0].id
+        }).returning();
 
-        
+        return newVideo[0];
     }catch(error) {
-        console.log("error ", error);
+        console.log(error);
         throw error;
     }
 }
+

@@ -96,10 +96,10 @@ function VideosPage() {
               <div className="p-4 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold text-lg line-clamp-1">
-                    {video.title || `Video ${video.id.substring(0, 8)}`}
+                    {`Video ${video.id.substring(0, 8)}`}
                   </h3>
                   <span className="text-xs text-slate-500">
-                    {new Date(video.createdTime).toLocaleDateString()}
+                    {video.createdTime ? new Date(video.createdTime).toLocaleDateString() : ''}
                   </span>
                 </div>
                 {video.hookText && (
