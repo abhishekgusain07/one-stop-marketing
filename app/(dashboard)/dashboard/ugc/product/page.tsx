@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
-import { Plus, Package, ArrowRight, X, Trash2 } from "lucide-react";
+import { Plus, Package, ArrowRight, X, Trash2, Edit } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -42,18 +42,31 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { deleteProduct } from '@/utils/data/user/products/deleteProduct';
-
+import { updateProduct } from '@/utils/data/user/products/updateProduct';
 
 function ProductsPage() {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [fetchingProducts, setFetchingProducts] = useState<Boolean>(true);
   const [isMounted, setIsMounted] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productToUpdate, setProductToUpdate] = useState<Product | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  const form = useForm<ProductFormValues>({
+  // Form for creating new products
+  const createForm = useForm<ProductFormValues>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  // Form for updating existing products
+  const updateForm = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: "",
@@ -83,18 +96,73 @@ function ProductsPage() {
     fetchProductsOfUser()
   }, [refreshTrigger])
 
-  const onSubmit = async (data: ProductFormValues) => {
-    console.log("here")
+  // Set update form values when a product is selected for update
+  useEffect(() => {
+    if (productToUpdate) {
+      updateForm.reset({
+        name: productToUpdate.name,
+        description: productToUpdate.description,
+      });
+      setHasChanges(false); // Reset changes state when opening dialog
+    }
+  }, [productToUpdate, updateForm]);
+
+  // Watch for changes in the update form
+  useEffect(() => {
+    if (productToUpdate && updateForm.formState.isDirty) {
+      const currentValues = updateForm.getValues();
+      const hasNameChanged = currentValues.name !== productToUpdate.name;
+      const hasDescriptionChanged = currentValues.description !== productToUpdate.description;
+      
+      setHasChanges(hasNameChanged || hasDescriptionChanged);
+    } else {
+      setHasChanges(false);
+    }
+  }, [updateForm.watch(), productToUpdate]);
+
+  const handleOpenUpdateDialog = (product: Product) => {
+    setProductToUpdate(product);
+    setUpdateDialogOpen(true);
+  };
+
+  const handleCloseUpdateDialog = () => {
+    setUpdateDialogOpen(false);
+    setTimeout(() => {
+      setProductToUpdate(null);
+    }, 300); // Delay clearing the product to avoid UI flicker
+  };
+
+  const onCreateSubmit = async (data: ProductFormValues) => {
     try {
       setIsSubmitting(true);
       const newProduct = await createProduct(data);
       toast.success("Product created successfully!");
-      setOpen(false);
-      form.reset();
+      setCreateDialogOpen(false);
+      createForm.reset();
       setRefreshTrigger(prev => prev + 1);
-      
     } catch (error) {
       toast.error("Failed to create product");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onUpdateSubmit = async (data: ProductFormValues) => {
+    if (!productToUpdate) return;
+    
+    try {
+      setIsSubmitting(true);
+      await updateProduct({
+        productId: productToUpdate.id,
+        name: data.name,
+        description: data.description
+      });
+      toast.success("Product updated successfully!");
+      handleCloseUpdateDialog();
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      toast.error("Failed to update product");
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -125,7 +193,7 @@ function ProductsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Your Products</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
               <Plus className="size-4" />
@@ -136,10 +204,10 @@ function ProductsPage() {
             <div className="flex justify-between items-center mb-6">
               <DialogTitle className="text-2xl font-semibold">Add new product</DialogTitle>
             </div>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Form {...createForm}>
+              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-6">
                 <FormField
-                  control={form.control}
+                  control={createForm.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
@@ -157,7 +225,7 @@ function ProductsPage() {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={createForm.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
@@ -182,7 +250,7 @@ function ProductsPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setOpen(false)}
+                    onClick={() => setCreateDialogOpen(false)}
                     disabled={isSubmitting}
                     className="px-6"
                   >
@@ -206,6 +274,90 @@ function ProductsPage() {
         </Dialog>
       </div>
 
+      {/* Update Product Dialog */}
+      <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] p-6">
+          <div className="flex justify-between items-center mb-6">
+            <DialogTitle className="text-2xl font-semibold">Update product</DialogTitle>
+          </div>
+          {productToUpdate && (
+            <Form {...updateForm}>
+              <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-6">
+                <FormField
+                  control={updateForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-semibold">Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          disabled={isSubmitting}
+                          className="mt-2"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={updateForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-semibold">What it does</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          className="resize-none mt-2"
+                          {...field}
+                          disabled={isSubmitting}
+                          rows={4}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <p className="text-sm text-slate-500 mt-2">
+                        This information is used as context for generating hooks. The more, the better.
+                      </p>
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-between items-center pt-4">
+                  <div className="text-sm text-slate-500">
+                    {!hasChanges && (
+                      <span>No changes detected</span>
+                    )}
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCloseUpdateDialog}
+                      disabled={isSubmitting}
+                      className="px-6"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit"
+                      disabled={isSubmitting || !hasChanges}
+                      variant="default"
+                      className="px-6"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        'Update product'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
       <AlertDialog 
         open={productToDelete !== null} 
         onOpenChange={(open) => !open && setProductToDelete(null)}
@@ -237,7 +389,10 @@ function ProductsPage() {
             <p className="text-slate-600">
               Start your UGC journey by adding your first product. Create engaging content and reach more customers!
             </p>
-            <Button className="mt-4 flex items-center gap-2">
+            <Button 
+              className="mt-4 flex items-center gap-2"
+              onClick={() => setCreateDialogOpen(true)}
+            >
               Get Started
               <ArrowRight className="size-4" />
             </Button>
@@ -253,7 +408,13 @@ function ProductsPage() {
                   {product.description}
                 </p>
                 <div className="flex justify-between items-center mt-4">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => handleOpenUpdateDialog(product)}
+                  >
+                    <Edit className="size-3.5" />
                     Manage
                   </Button>
                   <Button 
