@@ -1,7 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Plus, Instagram, Twitter, Video, Loader2Icon } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Videos } from '@/utils/types';
+import { getUserVideos } from '@/utils/data/user/videos/getUserVideos';
+
+// Define the schema for scheduling a post
+const scheduleFormSchema = z.object({
+  videoId: z.string().min(1, "Please select a video"),
+  platform: z.enum(["instagram", "tiktok", "twitter"]),
+  time: z.string().min(1, "Please select a time"),
+  date: z.string(),
+});
+
+type ScheduleFormValues = z.infer<typeof scheduleFormSchema>;
 
 const ContentCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -81,7 +102,65 @@ const ContentCalendar = () => {
   };
   
   const calendarDays = generateCalendarDays();
-  
+
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [hoveredDay, setHoveredDay] = useState<number | null>(null);
+  const [fetchingUserVideos, setFetchingUserVideos] = useState<boolean>(false);
+  const [availableVideos, setAvailableVideos] = useState<Videos[]>([]);
+
+  useEffect(() => {
+    const fetchUserVideos = async() => {
+      try{
+        setFetchingUserVideos(true)
+        const videos: Videos[] = await getUserVideos();
+        setAvailableVideos(videos);
+      }catch(error) {
+        console.log(error)
+      }finally{
+        setFetchingUserVideos(false)
+      }
+    }
+    fetchUserVideos()
+  },[])
+  const scheduleForm = useForm<ScheduleFormValues>({
+    resolver: zodResolver(scheduleFormSchema),
+    defaultValues: {
+      videoId: "",
+      platform: "instagram",
+      time: "",
+      date: "",
+    },
+  });
+
+  const handleDayClick = (day: number, isCurrentMonth: boolean) => {
+    if (!isCurrentMonth) return;
+    const clickedDate = new Date(currentYear, currentMonth, day);
+    setSelectedDate(clickedDate);
+    setShowScheduleDialog(true);
+    
+    // Pre-fill the date in the form
+    const formattedDate = clickedDate.toISOString().split('T')[0];
+    scheduleForm.setValue('date', formattedDate);
+  };
+
+  const onScheduleSubmit = async (data: ScheduleFormValues) => {
+    try {
+      // Add your API call here to save the scheduled post
+      console.log('Scheduling post:', data);
+      toast.success('Post scheduled successfully!');
+      setShowScheduleDialog(false);
+      scheduleForm.reset();
+    } catch (error) {
+      toast.error('Failed to schedule post');
+      console.error(error);
+    }
+  };
+  if(fetchingUserVideos) {
+    return <div className='w-full h-screen flex items-center justify-center'>
+      <Loader2Icon className='size-4 animate-spin' />
+    </div>
+  }
   return (
     <div className="w-full rounded-lg p-8 md:p-16">
       <div className="flex mb-4">
@@ -117,9 +196,15 @@ const ContentCalendar = () => {
         {calendarDays.map((day, index) => (
           <div 
             key={index} 
-            className={`aspect-square p-2 border border-[#B8B8B845] relative ${
-              day.isCurrentMonth ? 'bg-[#F7F8F3]' : 'bg-[#EEEFE8]'
-            }`}
+            className={`
+              aspect-square p-2 border border-[#B8B8B845] relative 
+              ${day.isCurrentMonth ? 'bg-[#F7F8F3]' : 'bg-[#EEEFE8]'}
+              ${day.isCurrentMonth ? 'cursor-pointer' : 'cursor-not-allowed'}
+              group
+            `}
+            onClick={() => day.isCurrentMonth && handleDayClick(day.day, day.isCurrentMonth)}
+            onMouseEnter={() => day.isCurrentMonth && setHoveredDay(day.day)}
+            onMouseLeave={() => setHoveredDay(null)}
           >
             <div 
               className={`
@@ -130,12 +215,136 @@ const ContentCalendar = () => {
             >
               {day.day}
             </div>
-            <div className="absolute top-12 left-0 right-0 max-h-[calc(100%-3rem)] overflow-y-auto">
-              {/* Content for scheduled items would go here */}
-            </div>
+            
+            {/* Add Post Button - Shows on hover */}
+            {day.isCurrentMonth && hoveredDay === day.day && (
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <Button
+                  size="sm"
+                  className="rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDayClick(day.day, day.isCurrentMonth);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         ))}
       </div>
+
+      {/* Schedule Dialog */}
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">
+              Schedule Post for {selectedDate?.toLocaleDateString()}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <Form {...scheduleForm}>
+            <form onSubmit={scheduleForm.handleSubmit(onScheduleSubmit)} className="space-y-6">
+              <FormField
+                control={scheduleForm.control}
+                name="videoId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Video</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a video" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableVideos.map((video) => (
+                          <SelectItem key={video.id} value={video.id}>
+                            <div className="flex items-center gap-2">
+                              <Video className="h-4 w-4" />
+                              {video.hookText}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={scheduleForm.control}
+                name="platform"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Platform</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select platform" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="instagram">
+                          <div className="flex items-center gap-2">
+                            <Instagram className="h-4 w-4" />
+                            Instagram
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="tiktok">
+                          <div className="flex items-center gap-2">
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                            </svg>
+                            TikTok
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="twitter">
+                          <div className="flex items-center gap-2">
+                            <Twitter className="h-4 w-4" />
+                            X (Twitter)
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={scheduleForm.control}
+                name="time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Time</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="time"
+                        {...field}
+                        className="w-full"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowScheduleDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Schedule Post
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
